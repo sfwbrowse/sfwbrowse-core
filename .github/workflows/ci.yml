@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+          cache-dependency-path: "sfwbrowse-core/package-lock.json"
+
+      - name: Install dependencies
+        working-directory: sfwbrowse-core
+        run: npm ci || npm install
+
+      - name: Run Core Tests
+        working-directory: sfwbrowse-core
+        run: npm test
+
+      - name: Run ESLint
+        working-directory: sfwbrowse-core
+        run: npm run lint
