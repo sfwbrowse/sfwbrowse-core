@@ -61,6 +61,7 @@ async function sync() {
     "content-troddit.js",
     "blocklist.js",
     "rules-data.js",
+    "background.js",
     "blocked.html",
     "blocked.css",
     "blocked.js",
@@ -79,11 +80,13 @@ async function sync() {
     const destPopup = resolve(destPortRoot, "popup");
     const destOptions = resolve(destPortRoot, "options");
     const destRules = resolve(destPortRoot, "rules");
+    const destIcons = resolve(destPortRoot, "icons");
 
     await mkdir(destSrc, { recursive: true });
     await mkdir(destPopup, { recursive: true });
     await mkdir(destOptions, { recursive: true });
     await mkdir(destRules, { recursive: true });
+    await mkdir(destIcons, { recursive: true });
 
     // Copy shared source modules and test suites
     for (const file of sharedCoreFiles) {
@@ -93,11 +96,29 @@ async function sync() {
       }
     }
 
-    // Copy storage to popup directory
+    // Copy popup UI and storage
+    const popupFiles = ["popup.html", "popup.css", "popup.js"];
+    for (const file of popupFiles) {
+      const srcPath = resolve(coreDir, "popup", file);
+      if (await fileExists(srcPath)) {
+        await copyFile(srcPath, resolve(destPopup, file));
+      }
+    }
     if (await fileExists(resolve(coreDir, "storage.js"))) {
       await copyFile(resolve(coreDir, "storage.js"), resolve(destPopup, "storage.js"));
     }
 
+    // Copy icons
+    const iconSizes = [16, 32, 48, 128];
+    for (const size of iconSizes) {
+      for (const prefix of ["icon-", "icon-disabled-"]) {
+        const iconName = `${prefix}${size}.png`;
+        const iconSrc = resolve(coreDir, "icons", iconName);
+        if (await fileExists(iconSrc)) {
+          await copyFile(iconSrc, resolve(destIcons, iconName));
+        }
+      }
+    }
     // Copy options page UI
     const optionsFiles = ["options.html", "options.css", "options.js", "storage.js"];
     for (const file of optionsFiles) {
